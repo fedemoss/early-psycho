@@ -1,0 +1,15 @@
+# data (inputs, raw HCP-EP files and all derived results) are never committed
+data/
+
+# python / jupyter
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# local tooling
+.claude/
+.vscode/
+.idea/
+.DS_Store
