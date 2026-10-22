@@ -20,7 +20,7 @@
 **Results (v2):**
 - Patients trend toward less redundancy and more synergy than controls: mean Ω g ≈ −0.4 and fraction synergistic g ≈ +0.4, p ≈ 0.07–0.10. This partly overlaps with their lower mean FC.
 - **No correlation with PANSS or YMRS.**
-- **The GEC model produces 0% synergistic triplets**, against about 22–28% empirically. Triplet Ω correlates with the empirical values at r ≈ 0.5 within subject.
+- **The GEC model produces 0% synergistic triplets**, against about 22–28% empirically. Triplet Ω correlates with the empirical values at r ≈ 0.66 within subject (Pearson FC).
 
 **Next steps:**
 - Dynamical (lagged) O-information from the lag-1 covariance, linking to the irreversibility result.

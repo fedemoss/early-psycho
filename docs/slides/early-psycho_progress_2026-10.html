@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>early-psycho: progress and findings</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --navy: #14213D; --paper: #F7F5F0; --paper2: #EAE7DF; --card: #FFFFFF; --line: #DDD8CC;
+    --ink: #14213D; --body: #3D4A5C; --muted: #6B7280;
+    --accent: #B4532A; --accent-l: #E8A26B; --blue: #2F6DB5;
+    --ap: #E0A458; --nap: #B4532A; --hc: #2F6DB5;
+    --serif: 'Source Serif 4', Georgia, serif; --sans: 'IBM Plex Sans', Arial, sans-serif; --mono: 'IBM Plex Mono', 'Courier New', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #0d1529; height: 100%; overflow: hidden; }
+  body { font-family: var(--sans); }
+  .deck { position: relative; width: 100vw; height: 100vh; }
+  .slide {
+    position: absolute; top: 50%; left: 50%; width: 1920px; height: 1080px;
+    transform-origin: center center; display: none; overflow: hidden;
+    background: var(--paper); color: var(--ink); padding: 112px 128px 150px;
+    flex-direction: column; gap: 44px;
+  }
+  .slide.active { display: flex; }
+  .slide.dark { background: var(--navy); color: #F2EFE8; }
+  .slide.divider { justify-content: center; gap: 28px; }
+  .eyebrow { font-size: 24px; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+  .dark .eyebrow { color: var(--accent-l); }
+  h1 { font-family: var(--serif); font-size: 120px; font-weight: 600; line-height: 1.05; }
+  h2 { font-family: var(--serif); font-size: 60px; font-weight: 600; line-height: 1.15; }
+  .divider h2 { font-size: 96px; }
+  h3 { font-family: var(--serif); font-size: 36px; font-weight: 600; line-height: 1.2; }
+  p, li, td, th { font-size: 28px; line-height: 1.45; color: var(--body); }
+  .dark p, .dark li { color: #BFC6D4; }
+  .head { display: flex; flex-direction: column; gap: 8px; }
+  .lead { font-size: 32px; color: var(--body); max-width: 1500px; }
+  ul { padding-left: 36px; display: flex; flex-direction: column; gap: 10px; }
+  .num { font-family: var(--mono); color: var(--accent); font-size: 24px; }
+  .dark .num { color: var(--accent-l); font-size: 32px; }
+  .row { display: flex; gap: 32px; }
+  .col { display: flex; flex-direction: column; gap: 20px; }
+  .grow { flex: 1; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 28px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 34px 38px; display: flex; flex-direction: column; gap: 12px; }
+  .card.tint { background: var(--paper2); border-color: var(--paper2); }
+  .card.hl { border: 2px solid var(--accent); }
+  .big { font-family: var(--serif); font-size: 104px; font-weight: 600; line-height: 1; color: var(--ink); }
+  .big.acc { color: var(--accent); }
+  .big.blue { color: var(--blue); }
+  .small { font-size: 24px; color: var(--muted); }
+  table { border-collapse: collapse; width: 100%; }
+  th { text-align: left; font-weight: 600; color: var(--ink); border-bottom: 2px solid var(--ink); padding: 10px 14px; font-size: 26px; }
+  td { border-bottom: 1px solid var(--line); padding: 10px 14px; font-size: 26px; vertical-align: top; }
+  td.r, th.r { text-align: right; font-variant-numeric: tabular-nums; }
+  .tag { display: inline-block; font-size: 22px; font-weight: 600; padding: 3px 12px; border-radius: 999px; }
+  .tag.bad { background: #F6DCCF; color: #8A3412; }
+  .tag.ok { background: #D7E6F5; color: #1E4E86; }
+  .tag.neu { background: #ECEAE4; color: #4B5563; }
+  .footer { position: absolute; left: 128px; right: 128px; bottom: 56px; display: flex; justify-content: space-between; font-size: 22px; color: var(--muted); }
+  .dark .footer { color: #8C96AB; }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: var(--mono); font-size: 0.9em; background: var(--paper2); padding: 1px 8px; border-radius: 6px; color: var(--ink); }
+  /* pipeline */
+  .pipe { display: flex; align-items: stretch; gap: 14px; }
+  .pipe .box { flex: 1; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 26px 24px; display: flex; flex-direction: column; gap: 8px; }
+  .pipe .box b { font-size: 28px; color: var(--ink); font-weight: 600; }
+  .pipe .box span { font-size: 23px; color: var(--muted); line-height: 1.35; }
+  .pipe .arrow { align-self: center; font-size: 40px; color: var(--accent); }
+  /* bars */
+  .bars { display: flex; flex-direction: column; gap: 18px; }
+  .bar-row { display: grid; grid-template-columns: 420px 1fr 230px; align-items: center; gap: 20px; }
+  .bar-row .val { white-space: nowrap; }
+  .todo .card { padding: 22px 30px; gap: 6px; }
+  .todo h3 { font-size: 30px; }
+  .todo p { font-size: 24px; line-height: 1.4; }
+  .bar-row .lab { font-size: 26px; color: var(--ink); }
+  .bar-track { height: 34px; background: var(--paper2); border-radius: 6px; position: relative; }
+  .bar { position: absolute; top: 0; height: 34px; border-radius: 6px; }
+  .bar.ap { background: var(--ap); top: 0; height: 16px; }
+  .bar.nap { background: var(--nap); top: 18px; height: 16px; }
+  .bar-row .val { font-family: var(--mono); font-size: 22px; color: var(--body); }
+  .legend { display: flex; gap: 32px; font-size: 24px; color: var(--body); align-items: center; }
+  .sw { display: inline-block; width: 22px; height: 22px; border-radius: 4px; vertical-align: -3px; margin-right: 8px; }
+  .refs li { font-size: 23px; line-height: 1.35; }
+  .progress { position: fixed; left: 0; bottom: 0; height: 4px; background: var(--accent-l); transition: width .2s; z-index: 5; }
+  .hint { position: fixed; right: 16px; bottom: 10px; color: #8C96AB; font: 13px var(--sans); z-index: 5; }
+  @media print {
+    @page { size: 1920px 1080px; margin: 0; }
+    html, body { overflow: visible; height: auto; background: none; }
+    .deck { width: auto; height: auto; }
+    .slide { display: flex !important; position: relative; top: 0; left: 0; transform: none !important; page-break-after: always; break-after: page; }
+    .progress, .hint { display: none; }
+    ul { display: block; }
+    li { margin-bottom: 10px; }
+    .col.grow { display: block; }
+    .col.grow > * + * { margin-top: 22px; }
+  }
+  .tag { align-self: flex-start; }
+  .verdict { display: flex; flex-direction: column; gap: 6px; padding: 20px 28px; border-radius: 12px; background: #FBEEE6; border-left: 8px solid var(--accent); }
+  .verdict.partial { background: #E6EEF7; border-left-color: var(--blue); }
+  .verdict .vl { font-size: 24px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: #8A3412; }
+  .verdict.partial .vl { color: #1E4E86; }
+  .verdict p { font-size: 26px; line-height: 1.4; color: var(--ink); }
+  .vline { font-size: 24px; line-height: 1.4; color: var(--ink); border-top: 1px solid var(--line); padding-top: 12px; margin-top: 4px; }
+  .vline b { color: #8A3412; }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<!-- ============================ 0 · intro ============================ -->
+<section class="slide dark" style="justify-content:space-between">
+  <p class="eyebrow">PhD progress review · October 2026</p>
+  <div class="col" style="gap:36px">
+    <h1>early-psycho</h1>
+    <p style="font-family:var(--serif);font-size:44px;line-height:1.3;color:#D8D3C8;max-width:1450px">Whole-brain models of early psychosis: what the first iteration showed, what we fixed, and what we are testing now</p>
+  </div>
+  <div class="row" style="gap:56px">
+    <p style="font-size:24px">HCP for Early Psychosis · 48 HC · 25 AP · 76 NAP</p>
+    <p style="font-size:24px">Hopf / GEC · in-silico perturbation · O-information</p>
+    <p style="font-size:24px"><a href="https://github.com/fedemoss/early-psycho" style="color:#E8A26B">github.com/fedemoss/early-psycho</a></p>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="head"><p class="eyebrow">Roadmap</p><h2>Four parts</h2></div>
+  <div class="grid2">
+    <div class="card"><p class="num">01 · v1</p><h3>First iteration</h3><p>GEC per subject, perturbability, P2H / P2O and a family of PANSS models. Headline result: R² = 0.31.</p></div>
+    <div class="card"><p class="num">02 · audit</p><h3>What we fixed</h3><p>Feature-selection leakage, model and analysis bugs, an inverted P2H sign, a full refit.</p></div>
+    <div class="card"><p class="num">03 · v2</p><h3>New hypotheses</h3><p>Hierarchy and irreversibility (Acero-Pousa), Mana et al. priors, higher-order interactions, leak-free prediction.</p></div>
+    <div class="card"><p class="num">04 · next</p><h3>Next steps</h3><p>Robustness of the irreversibility effect, richer clinical data, HOI extensions, papers to read.</p></div>
+  </div>
+  <div class="footer"><span>early-psycho · progress review</span><span>2</span></div>
+</section>
+
+<section class="slide">
+  <div class="head"><p class="eyebrow">Data</p><h2>HCP for Early Psychosis, resting state</h2></div>
+  <div class="row" style="gap:56px">
+    <div class="col grow">
+      <table>
+        <tr><th style="width:42%">Group</th><th class="r" style="width:14%">n</th><th>Clinical scores</th></tr>
+        <tr><td>Healthy controls (HC)</td><td class="r">48</td><td>none</td></tr>
+        <tr><td>Affective psychosis (AP)</td><td class="r">25</td><td>PANSS total, YMRS</td></tr>
+        <tr><td>Non-affective psychosis (NAP)</td><td class="r">76</td><td>PANSS total, YMRS</td></tr>
+      </table>
+      <p>PANSS available for 92 patients, YMRS for 98. MADRS is empty in our files, and the timeseries arrays carry no subject IDs (the raw Schaefer-1000 runs do).</p>
+    </div>
+    <div class="card tint" style="width:640px">
+      <h3>Acquisition</h3>
+      <ul>
+        <li>Schaefer-100, 7 Yeo networks (cortex only)</li>
+        <li>TR = 0.8 s, 1581 frames (4 runs)</li>
+        <li>Band-pass 0.008–0.08 Hz</li>
+        <li>Group-average structural connectome</li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer"><span><a href="https://doi.org/10.1093/schbul/sbae123">Jacobs et al. 2024, Schizophr Bull</a></span><span>3</span></div>
+</section>
+
+<!-- ============================ 1 · v1 ============================ -->
+<section class="slide dark divider">
+  <p class="num">01</p>
+  <h2>First iteration (v1)</h2>
+  <p style="font-size:36px;max-width:1300px">The legacy pipeline (May–Sep 2026): what we computed and what it seemed to show.</p>
+</section>
+
+<section class="slide">
+  <div class="head"><p class="eyebrow">v1 · pipeline</p><h2>From BOLD to effective connectivity to symptoms</h2></div>
+  <div class="pipe">
+    <div class="box"><b>rs-fMRI</b><span>149 subjects, Schaefer-100</span></div><div class="arrow">→</div>
+    <div class="box"><b>FC &amp; lag-1 FS</b><span>zero-lag and time-shifted correlations</span></div><div class="arrow">→</div>
+    <div class="box"><b>Hopf model</b><span>GEC fitted per subject from the SC</span></div><div class="arrow">→</div>
+    <div class="box"><b>Perturbation</b><span>FDT perturbability, P2H, P2O</span></div><div class="arrow">→</div>
+    <div class="box"><b>Symptoms</b><span>PANSS models</span></div>
+  </div>
+  <div class="grid3">
+    <div class="card tint"><h3>GEC</h3><p>Linear Hopf (a = −0.02), pseudo-gradient fit to FC + FS(τ = 1 TR). Fit r(FC) ≈ 0.61.</p></div>
+    <div class="card tint"><h3>P2H / P2O</h3><p>Inject extra noise at node j; measure how the simulated FC moves toward the healthy mean (P2H) or away from baseline (P2O).</p></div>
+    <div class="card tint"><h3>Perturbability</h3><p>FDT-based response map per node (Deco / Kringelbach). Also GEC asymmetry ‖C − Cᵀ‖.</p></div>
+  </div>
+  <div class="footer"><span>legacy/gec_and_pert_analysis.py · legacy/notebooks/gec_matrices.ipynb</span><span>5</span></div>
+</section>
+
+<section class="slide">
+  <div class="head"><p class="eyebrow">v1 · PANSS models</p><h2>Many models, one apparent winner</h2></div>
+  <table>
+    <tr><th style="width:52%">Model (all LOOCV)</th><th class="r" style="width:14%">R²</th><th class="r" style="width:12%">r</th><th>Note</th></tr>
+    <tr><td>XGBoost on row/column summaries of GEC, FC, FS</td><td class="r">−0.27</td><td class="r">–</td><td>3-class version: 52% acc. (majority 59%)</td></tr>
+    <tr><td>XGBoost “big” models (FC+FS / GEC / all)</td><td class="r">−0.24 … −0.01</td><td class="r">–</td><td>nothing learned</td></tr>
+    <tr><td>Raw Schaefer-1000 model</td><td class="r">0.07</td><td class="r">–</td><td>subjects duplicated (AP/PA phase files)</td></tr>
+    <tr><td>SC-selected edges + ridge</td><td class="r">−0.02</td><td class="r">–</td><td>Jaccard with corr-selected set: 0.006</td></tr>
+    <tr style="background:#FBEEE6"><td><b>lag-1 FC edges, |corr(edge, PANSS)| &gt; 0.2 + ridge</b></td><td class="r"><b>0.31</b></td><td class="r"><b>0.56</b></td><td>233 / 9900 edges</td></tr>
+    <tr><td>Same with GEC edges</td><td class="r">0.22</td><td class="r">0.47</td><td>133 edges</td></tr>
+    <tr><td>+ P2H / P2O as candidate features</td><td class="r">0.31</td><td class="r">0.56</td><td>none passed selection</td></tr>
+  </table>
+  <div class="footer"><span>legacy/notebooks/clinical_scores_*.ipynb · panss_model_region_overfit.ipynb · panss_model_sc_regions.ipynb</span><span>6</span></div>
+</section>
+
+<section class="slide">
+  <div class="head"><p class="eyebrow">v1 · perturbation and symptoms</p><h2>Perturbation measures did not track PANSS</h2></div>
+  <div class="grid2">
+    <div class="card"><h3>Direct correlation</h3><p>max(P2O) vs PANSS: r = 0.09 (p = 0.38)<br>min(P2H) vs PANSS: r = −0.13 (p = 0.22)</p><p class="small">Same null for P2H/P2O vs the model’s per-subject error.</p></div>
+    <div class="card"><h3>Perturb → predicted PANSS</h3><p>Node minimising predicted PANSS = node minimising P2H in <b>0 / 92</b> subjects. Weak rank effect (44.7 vs 50.5, p = 0.004).</p><p class="small">Used the leaky model, and TR = 2.0 instead of 0.8.</p></div>
+    <div class="card"><h3>One region everywhere</h3><p><code>argmin(P2H)</code> = region 26 (LH salience lateral PFC) in 78 / 92 patients <b>and</b> in 40 / 48 controls.</p></div>
+    <div class="card"><h3>Group effects unstable</h3><p>GEC asymmetry: HC &lt; AP in the 10-subject pilot (0.052 vs 0.061), HC &gt; AP in the full run (0.064 vs 0.049).</p></div>
+  </div>
+  <div class="footer"><span>legacy/notebooks/perturbability_*.ipynb · perturbation_panss_hypothesis.ipynb · output_study.ipynb</span><span>7</span></div>
+</section>
+
+<section class="slide dark" style="justify-content:center;gap:40px">
+  <p class="eyebrow">v1 · take-away at the time</p>
+  <p style="font-family:var(--serif);font-size:200px;font-weight:600;line-height:1;color:#F2EFE8">R² = 0.31</p>
+  <p style="font-size:40px;max-width:1500px;color:#D8D3C8">A ridge model on 233 lag-1 FC edges seemed to predict PANSS (r = 0.56). Perturbation measures added nothing. The next question was: is that signal real?</p>
+</section>
+
+<!-- ============================ 2 · audit ============================ -->
+<section class="slide dark divider">
+  <p class="num">02</p>
+  <h2>Audit and fixes</h2>
+  <p style="font-size:36px;max-width:1300px">Leakage in the headline model, bugs in the model port, an inverted sign, and a full refit.</p>
+</section>
+
+<section class="slide">
+  <div class="head"><p class="eyebrow">Audit · the R² = 0.31 model</p><h2>The headline result was feature-selection leakage</h2></div>
+  <div class="grid3">
+    <div class="card"><p class="small">Edges selected on all 92 subjects (v1)</p><p class="big acc">0.31</p><p>LOOCV R², the held-out subject helped pick the features</p></div>
+    <div class="card"><p class="small">Selection redone inside each fold</p><p class="big blue">−0.21</p><p>−0.21 to −0.33 across thresholds 0.15–0.25</p></div>
+    <div class="card"><p class="small">Leaky pipeline on shuffled PANSS</p><p class="big">0.15</p><p>mean of 200 shuffles; <b>11%</b> reach ≥ 0.31 (p ≈ 0.11)</p></div>
+  </div>
+  <p class="lead">With 9,900 candidate edges and 92 subjects, full-sample screening produces positive CV performance on pure noise. From now on: selection and tuning inside folds, plus a permutation null of the whole pipeline.</p>
+  <div class="footer"><span>src/symptom_prediction/leakage_audit.py · <a href="https://doi.org/10.1016/j.neuroimage.2017.06.061">Varoquaux 2018</a></span><span>10</span></div>
+</section>
+
+<section class="slide">
+  <div class="head"><p class="eyebrow">Audit · the model port</p><h2>Six issues in the v1 Python pipeline</h2></div>
+  <table>
+    <tr><th style="width:30%">Issue</th><th style="width:36%">v1</th><th>v2 fix</th></tr>
+    <tr><td>Oscillation frequency</td><td>Jacobian used f (Hz)</td><td>ω = 2π·f, as in the papers</td></tr>
+    <tr><td>Coupling scale</td><td>GEC rescaled to max 1</td><td>max 0.1, as in <code>Ceff_EP_HCP.m</code></td></tr>
+    <tr><td>Lagged target</td><td>empirical FS transposed vs model</td><td>both cov(xᵢ(t), xⱼ(t+τ))</td></tr>
+    <tr><td>Homotopic links</td><td>region i ↔ i+50 (not homologues in Schaefer)</td><td>mirrored centroids, same network</td></tr>
+    <tr><td>TR</td><td>2.0 s in the perturbation→PANSS notebook</td><td>0.8 s everywhere</td></tr>
+    <tr><td>Clinical model evaluation</td><td>full-sample selection</td><td>nested CV, within-group permutation null</td></tr>
+  </table>
+  <div class="footer"><span>src/core/hopf.py · src/core/evaluation.py</span><span>11</span></div>
+</section>
+
+<section class="slide">
+  <div class="head"><p class="eyebrow">Audit · P2H</p><h2>The “best” perturbation was the most damaging one</h2></div>
+  <div class="row" style="gap:48px">
+    <div class="col grow">
+      <div class="card tint"><p style="font-family:var(--mono);font-size:30px;color:var(--ink)">P2H<sub>j</sub> = sim(FC<sub>pert j</sub>, FC<sub>HC</sub>) − sim(FC<sub>base</sub>, FC<sub>HC</sub>)</p></div>
+      <ul>
+        <li>Higher P2H = the perturbation moves the subject <b>toward</b> healthy</li>
+        <li>v1 notebooks used <code>argmin(P2H)</code> as “closest to healthy”: that is the node whose perturbation <b>hurts</b> similarity most</li>
+        <li>P2H &lt; 0 for essentially every node and subject: no single-node noise injection improves anyone</li>
+        <li>Region 26 won in controls too, so it reflects the model and atlas, not the patients</li>
+      </ul>
+    </div>
+    <div class="card hl" style="width:520px">
+      <p class="small">v2 conventions</p>
+      <h3>best node = argmax</h3>
+      <p>Healthy reference computed leave-one-out for controls. Added Mana-style perturbations of the bifurcation parameter a<sub>j</sub>.</p>
+    </div>
+  </div>
+  <div class="footer"><span>src/core/hopf.py · perturbation_maps()</span><span>12</span></div>
+</section>
+
+<section class="slide">
+  <div class="head"><p class="eyebrow">Refit</p><h2>The fixed model fits much better</h2></div>
+  <div class="row" style="gap:48px;align-items:center">
+    <div class="card" style="width:460px;align-items:flex-start"><p class="small">v1 fit, r(FC)</p><p class="big">0.61</p><p>r(FS) 0.59</p></div>
+    <p style="font-size:80px;color:var(--accent)">→</p>
+    <div class="card hl" style="width:460px"><p class="small">v2 fit, r(FC)</p><p class="big acc">0.77</p><p>r(FS) 0.75</p></div>
+    <div class="col grow">
+      <table>
+        <tr><th>Group</th><th class="r">r(FC) v1</th><th class="r">r(FC) v2</th></tr>
+        <tr><td>HC</td><td class="r">0.62</td><td class="r">0.77</td></tr>
+        <tr><td>AP</td><td class="r">0.62</td><td class="r">0.78</td></tr>
+        <tr><td>NAP</td><td class="r">0.60</td><td class="r">0.77</td></tr>
+      </table>
+    </div>
+  </div>
+  <p class="lead">All 149 subjects refitted (≈ 20 min on 8 cores, locally). Fit quality is similar across groups, so group differences are not a fit artefact.</p>
+  <div class="footer"><span>src/gec_model/refit.py · notebooks/01_gec_model.ipynb</span><span>13</span></div>
+</section>
+
+<!-- ============================ 3 · v2 ============================ -->
+<section class="slide dark divider">
+  <p class="num">03</p>
+  <h2>New hypotheses (v2)</h2>
+  <p style="font-size:36px;max-width:1300px">Literature-driven questions, all tested with the fixed model and leak-free statistics.</p>
+</section>
+
+<section class="slide">
+  <div class="head"><p class="eyebrow">v2 · hypotheses</p><h2>Four questions from the literature</h2></div>
+  <div class="grid2" style="gap:24px">
+    <div class="card" style="padding:26px 34px"><p class="num">H1 · hierarchy</p><h3>More non-equilibrium in patients</h3><p style="font-size:25px">Acero-Pousa 2025: higher FDT deviation (“hierarchy”) in chronic schizophrenia. Same in early psychosis? Plus model-free irreversibility.</p><p class="vline"><b>Not supported:</b> no FDT difference; irreversibility goes the opposite way (lower).</p></div>
+    <div class="card" style="padding:26px 34px"><p class="num">H2 · Mana priors</p><h3>Restorative regions rank high</h3><p style="font-size:25px">Mana 2023: perturbing OFC, posterior cingulate, parahippocampal cortex restores healthy dynamics. Top of our P2H maps?</p><p class="vline"><b>Not supported:</b> Mana sets sit at chance in every map.</p></div>
+    <div class="card" style="padding:26px 34px"><p class="num">H3 · higher-order</p><h3>Less synergy, more redundancy</h3><p style="font-size:25px">Tarchi 2026: schizophrenia loses synergy. Same here, and can the Hopf model reproduce it?</p><p class="vline"><b>Not supported:</b> non-significant trend the other way; the model makes no synergy.</p></div>
+    <div class="card" style="padding:26px 34px"><p class="num">H4 · symptoms</p><h3>Features predict symptoms</h3><p style="font-size:25px">Do any features, or literature priors (Keane 2025), predict PANSS or YMRS beyond the AP/NAP difference?</p><p class="vline"><b>Not supported:</b> all 13 feature sets at permutation-null level.</p></div>
+  </div>
+  <div class="footer"><span>references on the last slide</span><span>15</span></div>
+</section>
+
+<section class="slide">
+  <div class="head"><p class="eyebrow">H1 · result</p><h2>Patients are less time-irreversible than controls</h2></div>
+  <div class="row" style="gap:56px">
+    <div class="col grow" style="gap:26px">
+      <div class="legend"><span><span class="sw" style="background:var(--ap)"></span>AP vs HC</span><span><span class="sw" style="background:var(--nap)"></span>NAP vs HC</span><span class="small">bar = |Hedges g|, all lower in patients</span></div>
+      <div class="bars">
+        <div class="bar-row"><span class="lab">Irreversibility (lag 2)</span><div class="bar-track"><div class="bar ap" style="width:60%"></div><div class="bar nap" style="width:89%"></div></div><span class="val">−0.60 / −0.89</span></div>
+        <div class="bar-row"><span class="lab">Irreversibility spread</span><div class="bar-track"><div class="bar ap" style="width:52%"></div><div class="bar nap" style="width:88%"></div></div><span class="val">−0.52 / −0.88</span></div>
+        <div class="bar-row"><span class="lab">GEC asymmetry</span><div class="bar-track"><div class="bar ap" style="width:51%"></div><div class="bar nap" style="width:77%"></div></div><span class="val">−0.51 / −0.77</span></div>
+        <div class="bar-row"><span class="lab">Irrev., adjusted for FC</span><div class="bar-track"><div class="bar ap" style="width:49%"></div><div class="bar nap" style="width:65%"></div></div><span class="val">−0.49 / −0.65</span></div>
+        <div class="bar-row"><span class="lab">FDT deviation (Acero-Pousa)</span><div class="bar-track"><div class="bar ap" style="width:30%"></div><div class="bar nap" style="width:27%"></div></div><span class="val">−0.30 / −0.27</span></div>
+      </div>
+      <div class="verdict" style="margin-top:20px">
+        <p class="vl">Verdict · H1 not supported (as stated)</p>
+        <p>The Acero-Pousa measure shows no group difference, and the model-free effect runs the <b>opposite</b> way: patients’ dynamics are closer to equilibrium, not further. The reversed effect itself is robust and is now our main finding.</p>
+      </div>
+    </div>
+    <div class="col" style="width:520px">
+      <div class="card hl"><p>Irreversibility: FDR q &lt; 0.001, at lags 1–3 and in <b>all 7 networks</b> (NAP g −0.79 to −0.90).</p></div>
+      <div class="card"><p>Model asymmetry tracks empirical irreversibility (ρ = 0.91). FDT deviation: no group difference (p = 0.27).</p></div>
+      <div class="card"><p><b>Opposite direction</b> to Acero-Pousa (chronic SZ). No symptom correlation survives FDR.</p></div>
+    </div>
+  </div>
+  <div class="footer"><span>src/hierarchy/run.py · notebooks/02_hierarchy.ipynb · <a href="https://doi.org/10.1038/s41398-025-03584-0">Acero-Pousa 2025</a></span><span>16</span></div>
+</section>
+
+<section class="slide">
+  <div class="head"><p class="eyebrow">H2 · result</p><h2>Mana et al. regions are not enriched in our P2H maps</h2></div>
+  <div class="row" style="gap:48px">
+    <div class="col grow">
+      <table>
+        <tr><th style="width:44%">Test (mean within-subject percentile)</th><th class="r">Observed</th><th class="r">p vs random sets</th></tr>
+        <tr><td>Restorative set, P2H noise, patients</td><td class="r">0.52</td><td class="r">0.34</td></tr>
+        <tr><td>Restorative set, P2H a<sub>j</sub>↓, patients</td><td class="r">0.52</td><td class="r">0.26</td></tr>
+        <tr><td>Pathogenic set, P2P a<sub>j</sub>↑, controls</td><td class="r">0.51</td><td class="r">0.40</td></tr>
+      </table>
+      <p style="font-size:25px">Mana’s Desikan-Killiany regions mapped to Schaefer via Harvard-Oxford overlap: 12 restorative nodes (OFC / vPFC, posterior cingulate, parahippocampal) and 18 pathogenic nodes (postcentral, insula, inferior parietal, fusiform, MTG).</p>
+      <div class="verdict">
+        <p class="vl">Verdict · H2 not supported</p>
+        <p>Neither set ranks above random nodes. Caveat: a loose replication (different atlas, noise-injection readout instead of Mana’s metastable-state KL divergence).</p>
+      </div>
+    </div>
+    <div class="card hl" style="width:540px">
+      <p class="small">Most frequent best P2H node (patients)</p>
+      <h3>LH precuneus / PCC</h3>
+      <p class="big acc" style="font-size:88px">48 / 92</p>
+      <p>Adjacent to Mana’s posterior cingulate but just under the overlap threshold. Post hoc, suggestive only.</p>
+    </div>
+  </div>
+  <div class="footer"><span>src/perturbation/run.py · notebooks/03_perturbation.ipynb · <a href="https://doi.org/10.1093/cercor/bhad067">Mana et al. 2023</a></span><span>17</span></div>
+</section>
+
+<section class="slide">
+  <div class="head"><p class="eyebrow">H3 · result</p><h2>Higher-order: a trend in the data, and a model that cannot make synergy</h2></div>
+  <div class="grid2">
+    <div class="card">
+      <h3>Empirical O-information (161,700 triplets)</h3>
+      <table>
+        <tr><th style="width:46%">Measure</th><th class="r">AP vs HC</th><th class="r">NAP vs HC</th><th class="r">p</th></tr>
+        <tr><td>Mean Ω (redundancy)</td><td class="r">−0.44</td><td class="r">−0.36</td><td class="r">0.07</td></tr>
+        <tr><td>Fraction synergistic</td><td class="r">+0.41</td><td class="r">+0.35</td><td class="r">0.10</td></tr>
+      </table>
+      <p>Patients trend less redundant, more synergistic; partly overlaps their lower mean FC. No PANSS / YMRS correlation.</p>
+    </div>
+    <div class="card hl">
+      <h3>GEC model vs data</h3>
+      <div class="row" style="gap:64px"><div><p class="small">empirical (about)</p><p class="big">25%</p></div><div><p class="small">GEC model</p><p class="big acc">0%</p></div></div>
+      <p>of triplets are synergy-dominated. Within-subject r(Ω<sub>emp</sub>, Ω<sub>model</sub>) ≈ 0.66. Non-negative pairwise couplings cannot produce synergy (Caprioglio et al. 2026).</p>
+    </div>
+  </div>
+  <div class="verdict">
+    <p class="vl">Verdict · H3 not supported</p>
+    <p>No significant group difference, and the trend points to <b>more</b> synergy in patients, the opposite of Tarchi 2026. The Hopf model cannot test it: with non-negative couplings it produces no synergy.</p>
+  </div>
+  <div class="footer"><span>src/higher_order/run.py · notebooks/04_higher_order.ipynb · <a href="https://doi.org/10.1103/PhysRevE.100.032305">Rosas 2019</a></span><span>18</span></div>
+</section>
+
+<section class="slide">
+  <div class="head"><p class="eyebrow">H4 · result</p><h2>No feature set predicts PANSS or YMRS once evaluation is leak-free</h2></div>
+  <div class="row" style="gap:48px">
+    <div class="col grow">
+      <table>
+        <tr><th style="width:62%">Feature set (6 of 13 shown)</th><th class="r">PANSS p</th><th class="r">YMRS p</th></tr>
+        <tr><td>FC edges, in-fold top-200</td><td class="r">0.52</td><td class="r">0.16</td></tr>
+        <tr><td>GEC edges (ridge, all)</td><td class="r">0.70</td><td class="r">0.56</td></tr>
+        <tr><td>O-information network compositions</td><td class="r">0.79</td><td class="r">0.75</td></tr>
+        <tr><td>FDT P<sub>j</sub> + nodal irreversibility</td><td class="r">0.68</td><td class="r">0.34</td></tr>
+        <tr><td>Mana restorative P2H</td><td class="r">0.38</td><td class="r">0.77</td></tr>
+        <tr><td>Keane 2025 SomMot–Vis edges</td><td class="r">0.44</td><td class="r">0.53</td></tr>
+      </table>
+      <div class="verdict">
+        <p class="vl">Verdict · H4 not supported</p>
+        <p>Every feature set is at permutation-null level (all p ≥ 0.16). PANSS total and YMRS may be the wrong targets.</p>
+      </div>
+    </div>
+    <div class="col" style="width:560px">
+      <div class="card tint"><h3>Protocol</h3><p>Repeated 10-fold CV; selection, scaling and ridge α inside folds; AP/NAP means removed in-fold; 200-permutation null of the full pipeline, shuffling within group.</p></div>
+      <div class="card"><p>R² never exceeds the group-only model. Consistent with Foster 2025: PANSS <b>total</b> is not predictable in early psychosis, but its factors were.</p></div>
+    </div>
+  </div>
+  <div class="footer"><span>src/symptom_prediction/run.py · notebooks/05_symptom_prediction.ipynb · <a href="https://doi.org/10.1038/s41386-025-02064-9">Foster et al. 2025</a></span><span>19</span></div>
+</section>
+
+<!-- ============================ 4 · next ============================ -->
+<section class="slide dark divider">
+  <p class="num">04</p>
+  <h2>Where we stand, and next steps</h2>
+  <p style="font-size:36px;max-width:1300px">One robust group effect, honest nulls for symptoms, and a clear list of things to do.</p>
+</section>
+
+<section class="slide">
+  <div class="head"><p class="eyebrow">Summary</p><h2>What we know now</h2></div>
+  <div class="grid2">
+    <div class="card hl"><span class="tag ok">robust</span><h3>Lower irreversibility in psychosis</h3><p>g ≈ −0.9 (NAP), −0.6 (AP); every network and lag; survives FC adjustment; mirrored by GEC asymmetry.</p></div>
+    <div class="card"><span class="tag ok">improved</span><h3>A correct, better-fitting model</h3><p>Six fixes; fit 0.61 → 0.77; code reorganised in <code>src/</code> with notebooks per study.</p></div>
+    <div class="card"><span class="tag neu">trend</span><h3>Less redundancy, more synergy</h3><p>p ≈ 0.07–0.10; the linear model produces no synergy at all.</p></div>
+    <div class="card"><span class="tag bad">null</span><h3>No symptom prediction, no Mana enrichment</h3><p>The v1 R² = 0.31 was leakage; PANSS total and YMRS not predictable; Mana sets at chance.</p></div>
+  </div>
+  <div class="footer"><span>v2 pipeline rerun from src/ on 22 Oct; all results reproduced</span><span>21</span></div>
+</section>
+
+<section class="slide">
+  <div class="head"><p class="eyebrow">Next steps</p><h2>To do, in priority order</h2></div>
+  <div class="grid2 todo" style="gap:20px">
+    <div class="card"><p class="num">1 · done (22 Oct)</p><h3>Rerun v2 and push figures</h3><p>All results reproduced from <code>src/</code>; notebooks 01–05 executed with figures.</p></div>
+    <div class="card"><p class="num">2 · irreversibility</p><h3>Stress-test the main effect</h3><p>Motion (FD), CPZ dose, global signal, per-run vs concatenated, τ; FDT at τ = 2 TR.</p></div>
+    <div class="card"><p class="num">3 · clinical data</p><h3>NDA #2914 tables</h3><p>Item-level PANSS (Wallwork factors), CAINS / BNSS, MADRS, age, sex; ID-aligned rebuild.</p></div>
+    <div class="card"><p class="num">4 · parcellation</p><h3>Add subcortex and cerebellum</h3><p>Thalamo-cortical (Keane) and cerebellar–PFC (Brady) circuits need these parcels.</p></div>
+    <div class="card"><p class="num">5 · higher-order</p><h3>Dynamics and a signed model</h3><p>Lagged O-information; GEC with negative couplings; perturbation-to-healthy in O-info space.</p></div>
+    <div class="card"><p class="num">6 · Mana</p><h3>Closer replication</h3><p>Their readout (KL over metastable substates), DK-matched regions, symptom factors.</p></div>
+  </div>
+  <div class="footer"><span>early-psycho · progress review</span><span>22</span></div>
+</section>
+
+<section class="slide">
+  <div class="head"><p class="eyebrow">References</p><h2>Papers behind each part</h2></div>
+  <div class="grid2" style="gap:24px 56px">
+    <div class="col" style="gap:14px">
+      <h3 style="font-size:30px">Data, models, evaluation</h3>
+      <ul class="refs">
+        <li><a href="https://doi.org/10.1093/schbul/sbae123">Jacobs et al. 2024 · HCP for Early Psychosis · Schizophr Bull</a></li>
+        <li><a href="https://doi.org/10.1103/physreve.108.064410">Deco et al. 2023 · FDT violation and perturbability · Phys Rev E</a></li>
+        <li><a href="https://doi.org/10.1038/s41398-025-03584-0">Acero-Pousa et al. 2025 · hierarchy in schizophrenia · Transl Psychiatry</a></li>
+        <li><a href="https://doi.org/10.1093/cercor/bhad067">Mana et al. 2023 · in-silico perturbation in SZ · Cereb Cortex</a></li>
+        <li><a href="https://doi.org/10.1016/j.neuroimage.2017.06.061">Varoquaux 2018 · small-sample CV error bars · NeuroImage</a></li>
+        <li><a href="https://doi.org/10.1038/s41386-025-02064-9">Foster et al. 2025 · CPM of psychosis symptoms · Neuropsychopharmacology</a></li>
+        <li><a href="https://doi.org/10.1038/s41380-024-02767-3">Keane et al. 2025 · somato-visual dysconnectivity · Mol Psychiatry</a></li>
+        <li><a href="https://doi.org/10.1016/j.schres.2012.01.031">Wallwork et al. 2012 · PANSS five-factor model · Schizophr Res</a></li>
+      </ul>
+    </div>
+    <div class="col" style="gap:14px">
+      <h3 style="font-size:30px">Higher-order interactions</h3>
+      <ul class="refs">
+        <li><a href="https://doi.org/10.1103/PhysRevE.100.032305">Rosas et al. 2019 · O-information · Phys Rev E</a></li>
+        <li><a href="https://doi.org/10.1038/s41593-022-01070-0">Luppi et al. 2022 · synergistic core · Nat Neurosci</a></li>
+        <li><a href="https://doi.org/10.1002/brb3.71352">Tarchi et al. 2026 · ΦID in schizophrenia · Brain Behav</a></li>
+        <li><a href="https://doi.org/10.1103/179y-qp6j">Caprioglio et al. 2026 · synergistic motifs in Gaussian systems · PRL</a></li>
+        <li><a href="https://doi.org/10.1371/journal.pcbi.1010431">Gatica et al. 2022 · HOI in a whole-brain model · PLoS Comput Biol</a></li>
+        <li><a href="https://doi.org/10.1038/s41398-024-03029-0">Herzog et al. 2024 · ketamine HOI · Transl Psychiatry</a></li>
+        <li><a href="https://doi.org/10.3389/fphys.2020.595736">Stramaglia et al. 2021 · dynamical O-information · Front Physiol</a></li>
+        <li><a href="https://doi.org/10.1038/s41467-024-54472-y">Santoro et al. 2024 · higher-order connectomics · Nat Commun</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer"><span>code: <a href="https://github.com/fedemoss/early-psycho">github.com/fedemoss/early-psycho</a></span><span>23</span></div>
+</section>
+
+</div>
+<div class="progress" id="progress"></div>
+<div class="hint">← → to navigate · F fullscreen · Ctrl+P for PDF</div>
+<script>
+  const slides = [...document.querySelectorAll('.slide')];
+  let i = Math.max(0, Math.min(slides.length - 1, (parseInt(location.hash.slice(1)) || 1) - 1));
+  function fit() {
+    const s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    slides.forEach(el => el.style.transform = `translate(-50%, -50%) scale(${s})`);
+  }
+  function show(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((el, k) => el.classList.toggle('active', k === i));
+    document.getElementById('progress').style.width = ((i + 1) / slides.length * 100) + '%';
+    history.replaceState(null, '', '#' + (i + 1));
+  }
+  document.addEventListener('keydown', e => {
+    if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); show(i + 1); }
+    if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); show(i - 1); }
+    if (e.key === 'Home') show(0);
+    if (e.key === 'End') show(slides.length - 1);
+    if (e.key === 'f' || e.key === 'F') { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
+  });
+  document.addEventListener('click', e => { if (!e.target.closest('a')) show(i + (e.clientX > window.innerWidth / 3 ? 1 : -1)); });
+  window.addEventListener('resize', fit);
+  fit(); show(i);
+</script>
+</body>
+</html>

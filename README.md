@@ -88,7 +88,7 @@ Then open the notebooks in `notebooks/` for figures.
 - **Model fit:** GEC fits improve from FC r ≈ 0.61 (v1) to 0.77 after the fixes below.
 - **Time-irreversibility is lower in patients**, in every Yeo network and at lags 1–3 TR:
   - NAP vs HC: Hedges g ≈ −0.9; AP vs HC: g ≈ −0.6; FDR q &lt; 0.001.
-  - Still present after adjusting for mean FC and autocorrelation (g ≈ −0.6).
+  - Still present after adjusting for mean FC and autocorrelation (NAP g ≈ −0.65, AP g ≈ −0.49).
   - Model GEC asymmetry tracks it (ρ = 0.91).
   - The direction is opposite to Acero-Pousa et al. 2025, who found more hierarchy in chronic schizophrenia. Motion and medication were not available to control for.
 - **No group difference in the FDT deviation (Acero-Pousa "hierarchy").**

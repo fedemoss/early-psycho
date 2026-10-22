@@ -24,7 +24,7 @@
 - **Irreversibility is lower in patients:**
   - NAP vs HC g ≈ −0.89, AP vs HC g ≈ −0.60, q &lt; 0.001.
   - Present at all lags and in all 7 networks.
-  - Still present after adjusting for mean FC and autocorrelation (g ≈ −0.6).
+  - Still present after adjusting for mean FC and autocorrelation (NAP g ≈ −0.65, AP g ≈ −0.49).
 - **GEC asymmetry is lower too** (g −0.5 / −0.77) and tracks empirical irreversibility (ρ = 0.91).
 - **FDT deviation (`Dhat`) shows no group difference.**
 - **No symptom correlation survives FDR.** The strongest is `Dhat` vs YMRS, ρ = 0.20, p = 0.055.
